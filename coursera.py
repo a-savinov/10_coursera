@@ -6,7 +6,7 @@ import progressbar
 import argparse
 
 
-def get_courses_list(courses_amount):
+def get_random_courses_list(courses_amount):
     xml_feed = requests.get(
         'https://www.coursera.org/sitemap~www~courses.xml').content
     soup = BeautifulSoup(xml_feed, 'lxml')
@@ -26,7 +26,7 @@ def get_course_info(course_url):
         course_rating = soup.find(
             'div', {'class': 'ratings-text bt3-visible-xs'}).text
     else:
-        course_rating = 'Not rated yet'
+        course_rating = None
     course_duration = len(soup.findAll('div', {'class': 'week'}))
     return [course_name, course_lang, course_start_date, course_duration,
             course_rating]
@@ -57,10 +57,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     courses_amount = args.amount
     filepath = args.file
-    courses_list = get_courses_list(courses_amount)
+    courses_list = get_random_courses_list(courses_amount)
     courses_info = []
-    bar = progressbar.ProgressBar(max_value=courses_amount)
-    for index, course in enumerate(courses_list):
+    bar = progressbar.ProgressBar(max_value=courses_amount, initial_value=1)
+    bar_start_position = 1
+    for index, course in enumerate(courses_list, bar_start_position):
         courses_info.append(get_course_info(course))
-        bar.update(index+1)
+        bar.update(index)
     output_courses_info_to_xlsx(courses_info, filepath)
